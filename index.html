@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,user-scalable=no" />
+    <title>Gem Game</title>
+    <link rel="stylesheet" href="src/assets/css/jquery-ui.css" />
+    <link rel="stylesheet" href="src/assets/css/estilos.css" />
+  </head>
+  <body>
+    <div class="main-container">
+      <h1 class="main-titulo">Gem Game</h1>
+
+      <div class="panel-tablero">
+        <div class="col-1" id="col-1"></div>
+        <div class="col-2" id="col-2"></div>
+        <div class="col-3" id="col-3"></div>
+        <div class="col-4" id="col-4"></div>
+        <div class="col-5" id="col-5"></div>
+        <div class="col-6" id="col-6"></div>
+        <div class="col-7" id="col-7"></div>
+      </div>
+
+      <div class="panel-score">
+        <div class="score">
+          <h2 class="data-titulo">Points</h2>
+          <span class="data-info" id="score-text">0</span>
+        </div>
+        <div class="moves">
+          <h2 class="data-titulo">Movements</h2>
+          <span class="data-info" id="movimientos-text">0</span>
+        </div>
+        <div class="time">
+          <h2 class="data-titulo">Time</h2>
+          <div class="data-info" id="timer">02:00</div>
+        </div>
+        <div class="buttons">
+          <button class="btn-reinicio" id="boton" value="Inicio">
+            Iniciar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
