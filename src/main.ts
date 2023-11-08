@@ -1,6 +1,23 @@
+// import anime from "animejs/lib/anime.es.js";
+import { CountdownTimer } from "./scripts/timer";
+
 document.addEventListener("DOMContentLoaded", () => {
   // Inicio -------------------------------------------
   let isActive: boolean = false;
+  const images: string[] = [
+    "src/assets/image/1.png",
+    "src/assets/image/2.png",
+    "src/assets/image/3.png",
+    "src/assets/image/4.png",
+  ];
+  let candies: HTMLImageElement[] = [];
+  let imageDragged: string;
+  let imageReplaced: string;
+  let candyDraggedId: number;
+  let candyReplacedId: number;
+
+  const mainTitulo = document.querySelector(".main-titulo") as HTMLElement;
+  const timer = document.querySelector("#timer") as HTMLElement;
 
   const btnReinicio = document.querySelector(".btn-reinicio") as HTMLElement;
 
@@ -20,93 +37,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
   //Evento para el botón mas (+)
 
-  const candyGenerator = (i: number) => {
-    let randomNumber: number = Math.floor(Math.random() * 4 + 1);
-    const img = document.createElement("img");
-
-    img.src = "src/assets/image/" + randomNumber + ".png";
+  const candyGenerator = (i: number, j: number) => {
+    let randomNumber: number = Math.floor(Math.random() * images.length);
+    let candy = document.createElement("img");
+    candy.src = images[randomNumber];
 
     const column = document.getElementById("col-" + i);
 
     if (column) {
-      img.classList.add("elemento");
-      img.setAttribute("id", randomNumber.toString());
-      console.log(img.id);
-
-      column.appendChild(img);
+      const value = i + "" + j;
+      candy.classList.add("elemento");
+      candy.setAttribute("draggable", "true");
+      candy.setAttribute("value", value);
+      candy.setAttribute("id", value);
+      column.appendChild(candy);
+      candies.push(candy);
     }
   };
 
-  const iniciar = () => {
-    animacion();
-    for (let i = 1; i < 8; i++) {
-      for (let j = 1; j < 8; j++) candyGenerator(i);
-    }
-  };
-
-  // Add draggable and droppable behavior
-  // const elementos = document.querySelectorAll(".elemento");
-  // elementos.forEach((element) => {
-  //   element.draggable = true;
-  // });
-
-  //   // Temporizador
-  //   const Temporizador = new (function () {
-  //     let countdown: HTMLElement;
-  //     let incrementTime: number = 70;
-  //     let currentTime: number = 12000;
-
-  //     const updateTimer = () => {
-  //       animacion();
-
-  //       countdown.innerHTML = formatTime(currentTime);
-
-  //       if (currentTime === 0) {
-  //         Temporizador.Timer.stop();
-  //         timerComplete();
-  //         return;
-  //       }
-
-  //       currentTime -= incrementTime / 10;
-
-  //       if (currentTime < 0) {
-  //         currentTime = 0;
-  //       }
-  //     };
-
-  //     const timerComplete = () => {
-  //       alert("Juego Terminado");
-  //     };
-
-  //     const init = () => {
-  //       countdown = document.getElementById("timer") as HTMLElement;
-
-  //       Temporizador.Timer = setInterval(updateTimer, incrementTime) as any;
-  //     };
-
-  //     this.resetCountdown = () => {
-  //       const newTime = 12000;
-  //       if (newTime > 0) {
-  //         currentTime = newTime;
-  //       }
-  //       this.Timer.stop();
-  //     };
-
-  //     init();
-  //   })();
-  // });
-
-  // Function for animation
-  const animacion = () => {
-    const mainTitulo = document.querySelector(".main-titulo") as HTMLElement;
+  // Function to animate an HTMLElement
+  const animate = (
+    element: HTMLElement,
+    primaryColor = "cyan",
+    secondaryColor = "#DCFF0E"
+  ) => {
     let isAnimationActive = true;
 
     const changeColor = () => {
-      mainTitulo.style.transition = "color 2s";
-      mainTitulo.style.color = "cyan";
-
+      element.style.transition = "color 2s";
+      element.style.color = primaryColor;
       setTimeout(() => {
-        mainTitulo.style.color = "#DCFF0E";
+        element.style.color = secondaryColor;
       }, 2000);
     };
 
@@ -123,17 +84,62 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 4000);
   };
 
-  // function pad(number: number, length: number) {
-  //   let str: string = "" + number;
-  //   while (str.length < length) {
-  //     str = "0" + str;
-  //   }
-  //   return str;
-  // }
+  // const animationTest = () => {
+  //   anime({
+  //     targets: "div",
+  //     translateX: 250,
+  //     rotate: "1turn",
+  //     backgroundColor: "#FFF",
+  //     duration: 800,
+  //   });
+  // };
 
-  // function formatTime(time: number) {
-  //   const min: number = Math.floor(time / 6000);
-  //   const sec: number = Math.floor(time / 100) - min * 60;
+  const iniciar = () => {
+    animate(mainTitulo);
+    for (let i = 1; i < 8; i++) {
+      for (let j = 1; j < 8; j++) {
+        candyGenerator(i, j);
+      }
+    }
 
-  //   return (min > 0 ? pad(min, 2) : "00") + ":" + pad(sec, 2);
+    //setting Countdown
+    const countdown = new CountdownTimer(0, 10);
+    setInterval(() => {
+      const timeRemaining = countdown.getTimeRemaining();
+      if (timeRemaining.minutes === 0 && timeRemaining.seconds === 0) {
+        timer.textContent = "Times Up!";
+        animate(timer, "#7A0080");
+      } else
+        timer.textContent = timeRemaining.minutes + ":" + timeRemaining.seconds;
+    }, 1000);
+
+    //Draggin functions
+    function dragstart(this: any) {
+      imageDragged = this.src;
+      candyDraggedId = parseInt(this.id);
+      console.log("dragging", imageDragged, candyDraggedId);
+    }
+    const dragenter = (e: Event) => {
+      e.preventDefault();
+    };
+    const dragover = (e: Event) => {
+      e.preventDefault();
+    };
+    function dragleave(this: any) {
+      this.src;
+    }
+    function dragend(this: any) {
+      console.log(imageReplaced);
+    }
+    function drop(this: any) {
+      imageReplaced = this.src;
+      this.src = imageDragged;
+    }
+    candies.forEach((candy) => candy.addEventListener("dragstart", dragstart));
+    candies.forEach((candy) => candy.addEventListener("dragenter", dragenter));
+    candies.forEach((candy) => candy.addEventListener("dragover", dragover));
+    candies.forEach((candy) => candy.addEventListener("dragleave", dragleave));
+    candies.forEach((candy) => candy.addEventListener("dragend", dragend));
+    candies.forEach((candy) => candy.addEventListener("drop", drop));
+  };
 });
