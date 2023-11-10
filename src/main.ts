@@ -9,16 +9,20 @@ document.addEventListener("DOMContentLoaded", () => {
     "src/assets/image/2.png",
     "src/assets/image/3.png",
     "src/assets/image/4.png",
+    "src/assets/image/empty.png",
   ];
   let candies: HTMLImageElement[] = [];
   let imageDragged: string;
   let imageReplaced: string;
   let candyDraggedId: number;
   let candyReplacedId: number;
+  let idDragged: number;
+  let idReplaced: number;
+  let id: number;
 
   const mainTitulo = document.querySelector(".main-titulo") as HTMLElement;
   const timer = document.querySelector("#timer") as HTMLElement;
-
+  const score = document.querySelector("#score-text") as HTMLElement;
   const btnReinicio = document.querySelector(".btn-reinicio") as HTMLElement;
 
   //Setting Reset Button Behavior
@@ -28,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
         btnReinicio.innerHTML = "Reiniciar";
         isActive = true;
 
-        iniciar();
+        init();
       } else {
         location.reload();
       }
@@ -53,6 +57,19 @@ document.addEventListener("DOMContentLoaded", () => {
       column.appendChild(candy);
       candies.push(candy);
     }
+  };
+
+  const getID = (candyId: number): number => {
+    if (candyId > 10 && candyId < 18) id = candyId - 11;
+    else if (candyId > 20 && candyId < 28) id = candyId - 14;
+    else if (candyId > 30 && candyId < 38) id = candyId - 17;
+    else if (candyId > 40 && candyId < 48) id = candyId - 20;
+    else if (candyId > 50 && candyId < 58) id = candyId - 23;
+    else if (candyId > 60 && candyId < 68) id = candyId - 26;
+    else if (candyId > 70 && candyId < 78) id = candyId - 29;
+    else id = -1;
+
+    return id;
   };
 
   // Function to animate an HTMLElement
@@ -94,30 +111,34 @@ document.addEventListener("DOMContentLoaded", () => {
   //   });
   // };
 
-  const iniciar = () => {
+  //setting init function
+  const init = () => {
     animate(mainTitulo);
-    for (let i = 1; i < 8; i++) {
+    for (let i = 1; i < 8 * 8; i++) {
       for (let j = 1; j < 8; j++) {
         candyGenerator(i, j);
       }
     }
 
     //setting Countdown
-    const countdown = new CountdownTimer(0, 10);
+    const countdown = new CountdownTimer(2, 0);
     setInterval(() => {
       const timeRemaining = countdown.getTimeRemaining();
       if (timeRemaining.minutes === 0 && timeRemaining.seconds === 0) {
         timer.textContent = "Times Up!";
         animate(timer, "#7A0080");
+      } else if (timeRemaining.seconds < 10) {
+        timer.textContent =
+          "0" + timeRemaining.minutes + ":0" + timeRemaining.seconds;
       } else
-        timer.textContent = timeRemaining.minutes + ":" + timeRemaining.seconds;
+        timer.textContent =
+          "0" + timeRemaining.minutes + ":" + timeRemaining.seconds;
     }, 1000);
 
     //Draggin functions
     function dragstart(this: any) {
       imageDragged = this.src;
       candyDraggedId = parseInt(this.id);
-      console.log("dragging", imageDragged, candyDraggedId);
     }
     const dragenter = (e: Event) => {
       e.preventDefault();
@@ -125,16 +146,50 @@ document.addEventListener("DOMContentLoaded", () => {
     const dragover = (e: Event) => {
       e.preventDefault();
     };
-    function dragleave(this: any) {
-      this.src;
+    function dragleave(e: Event) {
+      e.preventDefault();
+      // if (this.src === "src/assets/image/empty.png") {
+      //   return console.log(this.src);
+      // } else this.src = "src/assets/image/empty.png";
     }
-    function dragend(this: any) {
-      console.log(imageReplaced);
-    }
+
     function drop(this: any) {
       imageReplaced = this.src;
+      candyReplacedId = parseInt(this.id);
       this.src = imageDragged;
+
+      idDragged = getID(candyDraggedId);
+      idReplaced = getID(candyReplacedId);
+      candies[idDragged].src = imageReplaced;
     }
+
+    function dragend(this: any) {
+      //Move Conditional
+
+      let movementAllowed: number[] = [
+        candyDraggedId + 1,
+        candyDraggedId - 1,
+        candyDraggedId + 10,
+        candyDraggedId - 10,
+      ];
+      let isMovementAllowed: boolean =
+        movementAllowed.includes(candyReplacedId);
+
+      if (candyReplacedId && !isMovementAllowed) {
+        candies[idDragged].src = imageDragged;
+        candies[idReplaced].src = imageReplaced;
+        console.log(
+          "move Not Allowed " + (candyReplacedId && isMovementAllowed)
+        );
+      }
+    }
+
+    const checkRows = () => {
+      for (let i = 0; i < 47; i++) {
+        let rows: number[] = [i, i + 7, i + 7 * 2];
+        const isEmpty: string = candies[i].src === images[4];
+      }
+    };
     candies.forEach((candy) => candy.addEventListener("dragstart", dragstart));
     candies.forEach((candy) => candy.addEventListener("dragenter", dragenter));
     candies.forEach((candy) => candy.addEventListener("dragover", dragover));
