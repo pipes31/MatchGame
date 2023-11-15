@@ -1,4 +1,3 @@
-// import anime from "animejs/lib/anime.es.js";
 import { CountdownTimer } from "./scripts/timer";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -19,19 +18,22 @@ document.addEventListener("DOMContentLoaded", () => {
   let idDragged: number;
   let idReplaced: number;
   let id: number;
+  let points: number = 0;
+  let movements: number = 0;
+  const limiTime = 120000;
 
-  const mainTitulo = document.querySelector(".main-titulo") as HTMLElement;
+  const mainTitulo = document.querySelector(".main-title") as HTMLElement;
   const timer = document.querySelector("#timer") as HTMLElement;
   const score = document.querySelector("#score-text") as HTMLElement;
-  const btnReinicio = document.querySelector(".btn-reinicio") as HTMLElement;
+  const btnStart = document.querySelector(".btn-start") as HTMLElement;
+  const moveLabel = document.querySelector("#move-text") as HTMLElement;
 
   //Setting Reset Button Behavior
-  if (btnReinicio) {
-    btnReinicio.addEventListener("click", () => {
+  if (btnStart) {
+    btnStart.addEventListener("click", () => {
       if (!isActive) {
-        btnReinicio.innerHTML = "Reiniciar";
+        btnStart.textContent = "Restart";
         isActive = true;
-
         init();
       } else {
         location.reload();
@@ -39,12 +41,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  //Evento para el botón mas (+)
-
+  //Fuction to Generate Candy when the game starts
   const candyGenerator = (i: number, j: number) => {
-    let randomNumber: number = Math.floor(Math.random() * images.length);
+    let randomImage: number = Math.floor(Math.random() * (images.length - 1));
     let candy = document.createElement("img");
-    candy.src = images[randomNumber];
+    candy.src = images[randomImage];
 
     const column = document.getElementById("col-" + i);
 
@@ -59,6 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  //Function to GetID use on Drop Function
   const getID = (candyId: number): number => {
     if (candyId > 10 && candyId < 18) id = candyId - 11;
     else if (candyId > 20 && candyId < 28) id = candyId - 14;
@@ -101,32 +103,113 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 4000);
   };
 
-  // const animationTest = () => {
-  //   anime({
-  //     targets: "div",
-  //     translateX: 250,
-  //     rotate: "1turn",
-  //     backgroundColor: "#FFF",
-  //     duration: 800,
-  //   });
-  // };
+  //Fuction to Check the matches for the rows
+  const checkRows = () => {
+    for (let i = 0; i < 35; i++) {
+      const rows: number[] = [i, i + 7, i + 7 * 2];
+      const colorSelected = candies[i].src;
+      const isEmpty = candies[i].getAttribute("value") === "-1";
+
+      if (
+        !isEmpty &&
+        rows.every((index) => candies[index].src === colorSelected)
+      ) {
+        points = points + 3;
+        score.textContent = points.toString();
+        rows.forEach((index) => {
+          candies[index].src = images[4];
+          candies[index].setAttribute("value", "-1");
+        });
+      }
+    }
+  };
+
+  //Fuction to Check the matches for the Columns
+  const checkColumns = () => {
+    for (let i = 0; i < 47; i++) {
+      const columns: number[] = [i, i + 1, i + 2];
+      const exceptions: number[] = [7, 14, 21, 28, 35, 42];
+      const colorSelected = candies[i].src;
+      const isEmpty = candies[i].getAttribute("value") === "-1";
+
+      let isAllowed = true;
+      for (let j = 0; j < columns.length; j++) {
+        if (exceptions.includes(columns[j || j - 1 || j - 2])) {
+          isAllowed = false;
+
+          break;
+        }
+      }
+      if (
+        !isEmpty &&
+        isAllowed &&
+        columns.every((index) => candies[index].src === colorSelected)
+      ) {
+        points = points + 3;
+        score.textContent = points.toString();
+        columns.forEach((index) => {
+          candies[index].src = images[4];
+          candies[index].setAttribute("value", "-1");
+        });
+      }
+    }
+  };
+
+  //Fuction To move candies to the row below
+  const moveCandyBelow = () => {
+    for (let i = 0; i < candies.length; i++) {
+      const isEmpty = candies[i].getAttribute("value") === "-1";
+      let exceptions: number[] = [0, 7, 14, 21, 28, 35, 42];
+      const isExcepted = exceptions.includes(i);
+      if (isEmpty) {
+        if (!isExcepted) {
+          candies[i].src = candies[i - 1].src;
+          candies[i].setAttribute("value", i.toString());
+          candies[i - 1].src = images[4];
+          candies[i - 1].setAttribute("value", "-1");
+          console.log("moviendo");
+        } else {
+          let randomImage = Math.floor(Math.random() * (images.length - 1));
+          candies[i].src = images[randomImage];
+
+          candies[i].setAttribute("value", i.toString());
+          console.log("generando nuevo dulce");
+        }
+      }
+    }
+  };
 
   //setting init function
   const init = () => {
     animate(mainTitulo);
-    for (let i = 1; i < 8 * 8; i++) {
+    for (let i = 1; i < 8; i++) {
       for (let j = 1; j < 8; j++) {
         candyGenerator(i, j);
       }
     }
 
-    //setting Countdown
+    //Interval function to execute game's behavior
+    const intervalId = setInterval(() => {
+      checkRows();
+      checkColumns();
+      moveCandyBelow();
+    }, 100);
+
+    //Stop the Interval function when the time runs out
+    setTimeout(() => {
+      clearInterval(intervalId);
+    }, limiTime);
+
+    //calling the class CountdownTimer to creates the timer and setting different behaviours for a couple HTMLELEMENTS
     const countdown = new CountdownTimer(2, 0);
     setInterval(() => {
       const timeRemaining = countdown.getTimeRemaining();
       if (timeRemaining.minutes === 0 && timeRemaining.seconds === 0) {
         timer.textContent = "Times Up!";
         animate(timer, "#7A0080");
+        for (let i = 0; i < candies.length; i++) {
+          candies[i].setAttribute("draggable", "false");
+        }
       } else if (timeRemaining.seconds < 10) {
         timer.textContent =
           "0" + timeRemaining.minutes + ":0" + timeRemaining.seconds;
@@ -148,9 +231,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     function dragleave(e: Event) {
       e.preventDefault();
-      // if (this.src === "src/assets/image/empty.png") {
-      //   return console.log(this.src);
-      // } else this.src = "src/assets/image/empty.png";
     }
 
     function drop(this: any) {
@@ -174,22 +254,17 @@ document.addEventListener("DOMContentLoaded", () => {
       ];
       let isMovementAllowed: boolean =
         movementAllowed.includes(candyReplacedId);
+      movements += 1;
+      moveLabel.textContent = movements.toString();
 
       if (candyReplacedId && !isMovementAllowed) {
         candies[idDragged].src = imageDragged;
         candies[idReplaced].src = imageReplaced;
-        console.log(
-          "move Not Allowed " + (candyReplacedId && isMovementAllowed)
-        );
+        movements -= 1;
+        moveLabel.textContent = movements.toString();
       }
     }
 
-    const checkRows = () => {
-      for (let i = 0; i < 47; i++) {
-        let rows: number[] = [i, i + 7, i + 7 * 2];
-        const isEmpty: string = candies[i].src === images[4];
-      }
-    };
     candies.forEach((candy) => candy.addEventListener("dragstart", dragstart));
     candies.forEach((candy) => candy.addEventListener("dragenter", dragenter));
     candies.forEach((candy) => candy.addEventListener("dragover", dragover));

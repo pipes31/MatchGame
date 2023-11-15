@@ -2,17 +2,16 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,user-scalable=no" />
-    <title>Match Game</title>
-    <link rel="stylesheet" href="src/assets/css/jquery-ui.css" />
-    <link rel="stylesheet" href="src/assets/css/estilos.css" />
-    <script href="src/scripts/jquery-ui.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Gamerz</title>
+    <link rel="stylesheet" href="src/assets/css/styles.css" />
   </head>
   <body>
     <div class="main-container">
-      <h1 class="main-titulo">Match Game</h1>
+      <h1 class="main-title">Gamerz</h1>
 
-      <div class="panel-tablero">
+      <div class="panel-board">
         <div class="col-1" id="col-1"></div>
         <div class="col-2" id="col-2"></div>
         <div class="col-3" id="col-3"></div>
@@ -29,18 +28,22 @@
         </div>
         <div class="moves">
           <h2 class="data-titulo">Movements</h2>
-          <span class="data-info" id="movimientos-text">0</span>
+          <span class="data-info" id="move-text">0</span>
         </div>
         <div class="time">
           <h2 class="data-titulo">Time</h2>
           <div class="data-info" id="timer">02:00</div>
         </div>
         <div class="buttons">
-          <button class="btn-reinicio" id="boton" value="Inicio">
-            Iniciar
-          </button>
+          <button class="btn-start" id="botton">Iniciar</button>
         </div>
       </div>
+      <footer>
+        <div class="footer">
+          <img src="src/assets/image/Logo Afespinosa.png" class="logo" />
+          <span>Developed by: <b>afespinosa</b></span>
+        </div>
+      </footer>
     </div>
 
     <script type="module" src="/src/main.ts"></script>
