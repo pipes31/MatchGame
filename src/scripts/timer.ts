@@ -15,7 +15,6 @@ export class CountdownTimer {
   update() {
     if (this.minutes === 0 && this.seconds === 0) {
       this.stop();
-      console.log("¡El temporizador ha terminado!");
     } else {
       if (this.seconds === 0) {
         this.minutes--;
