@@ -4,11 +4,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // Inicio -------------------------------------------
   let isActive: boolean = false;
   const images: string[] = [
-    "src/assets/image/1.png",
-    "src/assets/image/2.png",
-    "src/assets/image/3.png",
-    "src/assets/image/4.png",
-    "src/assets/image/empty.png",
+    "src/assets/image/1.webp",
+    "src/assets/image/2.webp",
+    "src/assets/image/3.webp",
+    "src/assets/image/4.webp",
+    "src/assets/image/empty.webp",
   ];
   let candies: HTMLImageElement[] = [];
   let imageDragged: string;
