@@ -167,13 +167,11 @@ document.addEventListener("DOMContentLoaded", () => {
           candies[i].setAttribute("value", i.toString());
           candies[i - 1].src = images[4];
           candies[i - 1].setAttribute("value", "-1");
-          console.log("moviendo");
         } else {
           let randomImage = Math.floor(Math.random() * (images.length - 1));
           candies[i].src = images[randomImage];
 
           candies[i].setAttribute("value", i.toString());
-          console.log("generando nuevo dulce");
         }
       }
     }
