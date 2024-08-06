@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let id: number;
   let points: number = 0;
   let movements: number = 0;
-  const limiTime = 120000;
+  const limitTime = 120000;
 
   const mainTitulo = document.querySelector(".main-title") as HTMLElement;
   const timer = document.querySelector("#timer") as HTMLElement;
@@ -196,7 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
     //Stop the Interval function when the time runs out
     setTimeout(() => {
       clearInterval(intervalId);
-    }, limiTime);
+    }, limitTime);
 
     //calling the class CountdownTimer to creates the timer and setting different behaviours for a couple HTMLELEMENTS
     const countdown = new CountdownTimer(2, 0);
