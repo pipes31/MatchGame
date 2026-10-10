@@ -2,47 +2,102 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="Gamerz — a fast arcade match-3 candy game. Line up 3 or more candies before the clock runs out." />
+    <meta name="theme-color" content="#05030a" />
+    <link rel="icon" type="image/png" href="/src/assets/image/favicon.png" />
     <title>Gamerz</title>
-    <link rel="stylesheet" href="src/assets/css/styles.css" />
   </head>
-  <body>
-    <div class="main-container">
-      <h1 class="main-title">Gamerz</h1>
+  <body class="min-h-dvh font-pixel text-white antialiased">
+    <div class="relative z-10 mx-auto flex min-h-dvh max-w-6xl flex-col gap-4 px-4 py-4 sm:gap-6 sm:py-6">
+      <header class="flex items-center justify-between gap-3">
+        <h1 class="title text-2xl sm:text-4xl">Gamerz</h1>
+        <div class="flex gap-2">
+          <button id="btn-sound" class="icon-btn" type="button" aria-label="Mute sound"></button>
+          <button id="btn-pause" class="icon-btn" type="button" aria-label="Pause" disabled></button>
+          <button id="btn-restart" class="icon-btn" type="button" aria-label="Restart game" title="Restart" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v5h5" /></svg>
+          </button>
+        </div>
+      </header>
 
-      <div class="panel-board">
-        <div class="col-1" id="col-1"></div>
-        <div class="col-2" id="col-2"></div>
-        <div class="col-3" id="col-3"></div>
-        <div class="col-4" id="col-4"></div>
-        <div class="col-5" id="col-5"></div>
-        <div class="col-6" id="col-6"></div>
-        <div class="col-7" id="col-7"></div>
-      </div>
+      <main class="flex flex-1 flex-col items-center gap-4 lg:flex-row lg:items-start lg:justify-center lg:gap-6">
+        <aside class="grid w-[min(100%,calc(100dvh-15rem))] min-w-[17rem] grid-cols-4 gap-2 lg:w-60 lg:min-w-0 lg:grid-cols-1 lg:gap-3" aria-label="Game stats">
+          <div class="stat">
+            <span class="stat-label">Score</span>
+            <span id="score" class="stat-value inline-block">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Best</span>
+            <span id="best" class="stat-value">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Moves</span>
+            <span id="moves" class="stat-value">0</span>
+          </div>
+          <div id="time-card" class="stat time-card">
+            <span class="stat-label">Time</span>
+            <span id="time" class="stat-value" role="timer">2:00</span>
+            <div class="h-1.5 w-full overflow-hidden rounded-full bg-white/10 lg:h-2">
+              <div id="time-bar" class="h-full w-full rounded-full bg-gradient-to-r from-[#5ee7ff] to-[#ff5fa2] transition-[width] duration-100 ease-linear"></div>
+            </div>
+          </div>
+          <p class="panel hidden p-4 text-[9px] leading-relaxed text-white/60 lg:block">
+            Drag a candy or tap two neighbours to swap. Chains score combo multipliers.
+            <span class="mt-2 block text-white/40">Keys: arrows · Enter · P to pause</span>
+          </p>
+        </aside>
 
-      <div class="panel-score">
-        <div class="score">
-          <h2 class="data-titulo">Points</h2>
-          <span class="data-info" id="score-text">0</span>
-        </div>
-        <div class="moves">
-          <h2 class="data-titulo">Movements</h2>
-          <span class="data-info" id="move-text">0</span>
-        </div>
-        <div class="time">
-          <h2 class="data-titulo">Time</h2>
-          <div class="data-info" id="timer">02:00</div>
-        </div>
-        <div class="buttons">
-          <button class="btn-start" id="botton">Start</button>
-        </div>
-      </div>
-      <footer>
-        <div class="footer">
-          <img src="src/assets/image/Logo.webp" class="logo" />
-          <span>Developed by: <b>Felipe Espinosa</b></span>
-        </div>
+        <section class="panel relative aspect-square w-[min(100%,calc(100dvh-15rem))] min-w-[17rem] p-2 sm:p-3 lg:w-[min(44rem,calc(100dvh-9rem))]">
+          <div
+            id="board"
+            class="relative h-full w-full touch-none select-none overflow-hidden rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-[#5ee7ff]"
+            tabindex="0"
+            role="application"
+            aria-label="Game board. Use arrow keys to move, Enter to select and swap."
+          >
+            <div id="cells" class="absolute inset-0 grid grid-cols-8 grid-rows-8"></div>
+            <div id="tiles" class="absolute inset-0"></div>
+          </div>
+
+          <div
+            id="banner"
+            class="pointer-events-none absolute left-1/2 top-1/2 z-10 whitespace-nowrap text-xl text-white [text-shadow:0_3px_0_#000,0_0_18px_#ff5fa2] sm:text-3xl"
+            aria-live="polite"
+          ></div>
+
+          <div id="overlay-start" class="overlay">
+            <h2 class="title text-xl sm:text-3xl">Match 3</h2>
+            <p class="max-w-sm text-[10px] leading-loose text-white/70 sm:text-xs">
+              Swap neighbouring candies to line up 3 or more. Keep the chain going for combos — you have 2 minutes.
+            </p>
+            <button id="btn-play" class="btn" type="button">Play</button>
+          </div>
+
+          <div id="overlay-paused" class="overlay hidden">
+            <h2 class="text-xl text-[#5ee7ff] sm:text-3xl">Paused</h2>
+            <button id="btn-resume" class="btn" type="button">Resume</button>
+          </div>
+
+          <div id="overlay-over" class="overlay hidden">
+            <h2 class="text-xl text-[#ff5fa2] sm:text-3xl">Time's up!</h2>
+            <p id="new-record" class="hidden animate-bounce text-[10px] text-[#ffd23f] sm:text-xs">★ New best score ★</p>
+            <div class="flex flex-col items-center gap-2">
+              <span class="text-[10px] uppercase tracking-widest text-white/50">Final score</span>
+              <span id="final-score" class="text-3xl text-[#ffd23f] sm:text-5xl">0</span>
+            </div>
+            <div class="flex gap-6 text-[10px] text-white/60 sm:text-xs">
+              <span>Moves <b id="final-moves" class="text-white">0</b></span>
+              <span>Best <b id="final-best" class="text-white">0</b></span>
+            </div>
+            <button id="btn-again" class="btn" type="button">Play again</button>
+          </div>
+        </section>
+      </main>
+
+      <footer class="flex items-center justify-center gap-3 text-[9px] text-white/50 sm:text-[10px]">
+        <img src="/src/assets/image/afersoft-logo.webp" alt="Afersoft logo" width="32" height="32" class="h-8 w-8 object-contain drop-shadow-[0_0_8px_rgb(0_180_255/0.45)] sm:h-9 sm:w-9" />
+        <span>Developed by <b class="bg-gradient-to-r from-[#00c6ff] to-[#ff8a1f] bg-clip-text text-transparent">Afersoft</b></span>
       </footer>
     </div>
 
