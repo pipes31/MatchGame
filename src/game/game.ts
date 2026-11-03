@@ -1,11 +1,25 @@
-import { Board, type Fall, type MatchGroup, type Pos, type Tile } from "./board";
 import { CANDIES } from "./candies";
+import {
+  Board,
+  BOARD_SIZE,
+  CANDY_TYPES,
+  GAME_MS,
+  mulberry32,
+  scoreFor,
+  type Fall,
+  type MatchGroup,
+  type Move,
+  type Pos,
+  type Tile,
+} from "./rules";
 import { sfx } from "./sound";
 import { storage } from "./storage";
 import { CountdownTimer } from "./timer";
 
-export const BOARD_SIZE = 8;
-export const GAME_MS = 120_000;
+if (CANDIES.length !== CANDY_TYPES) {
+  throw new Error("CANDIES must have CANDY_TYPES entries, or ranked replays won't match");
+}
+
 const LOW_TIME_MS = 10_000;
 const SWAP_MS = 180;
 const POP_MS = 280;
@@ -20,6 +34,8 @@ export interface GameResult {
   moves: number;
   best: number;
   isRecord: boolean;
+  /** Every successful swap, so the server can replay the game. */
+  log: Move[];
 }
 
 export interface GameElements {
@@ -44,12 +60,8 @@ const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 const samePos = (a: Pos, b: Pos) => a.row === b.row && a.col === b.col;
 const clamp = (n: number) => Math.max(0, Math.min(BOARD_SIZE - 1, n));
 
-/** Points for one cleared run: 10 per tile, bonus for 4 and 5+, multiplied by the cascade depth. */
-const scoreFor = (length: number, combo: number) =>
-  (length * 10 + (length >= 5 ? 50 : length === 4 ? 20 : 0)) * combo;
-
 export class Game {
-  private board = new Board(BOARD_SIZE, CANDIES.length);
+  private board = new Board(BOARD_SIZE, CANDY_TYPES);
   private readonly tileEls = new Map<number, HTMLElement>();
   private readonly timer: CountdownTimer;
   private readonly cursorEl: HTMLElement;
@@ -60,6 +72,7 @@ export class Game {
   private timeUp = false;
   private score = 0;
   private moves = 0;
+  private log: Move[] = [];
   private best = Number(storage.get(BEST_KEY)) || 0;
   private lastSecond = -1;
   private selected: Pos | null = null;
@@ -89,7 +102,8 @@ export class Game {
     return this.state;
   }
 
-  start() {
+  /** Starts a new game; pass the server-issued seed for a ranked game. */
+  start(seed?: number) {
     this.round++;
     this.clearHint();
     this.select(null);
@@ -98,11 +112,16 @@ export class Game {
     this.timeUp = false;
     this.score = 0;
     this.moves = 0;
+    this.log = [];
     this.renderStats();
 
     for (const el of this.tileEls.values()) el.remove();
     this.tileEls.clear();
-    this.board = new Board(BOARD_SIZE, CANDIES.length);
+    this.board = new Board(
+      BOARD_SIZE,
+      CANDY_TYPES,
+      seed === undefined ? Math.random : mulberry32(seed)
+    );
     const falls: Fall[] = [];
     this.forEachTile((tile, row, col) =>
       falls.push({ tile, row, col, fromRow: row - BOARD_SIZE })
@@ -162,6 +181,7 @@ export class Game {
   private async trySwap(a: Pos, b: Pos) {
     if (!this.canInteract() || !this.board.inBounds(b)) return;
     const round = this.round;
+    const time = Math.round(GAME_MS - this.timer.timeLeft);
     this.busy = true;
     this.clearHint();
     sfx.swap();
@@ -177,6 +197,7 @@ export class Game {
       this.flash([a, b], "shake");
     } else {
       this.moves++;
+      this.log.push([a.row, a.col, b.row, b.col, time]);
       this.renderStats();
       await this.resolve(groups, round);
       if (round !== this.round) return;
@@ -243,6 +264,7 @@ export class Game {
       moves: this.moves,
       best: this.best,
       isRecord,
+      log: this.log,
     });
   }
 
